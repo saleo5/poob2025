@@ -1,0 +1,94 @@
+
+/**
+ * Write a description of class pit here.
+ * 
+ * @author (your name) 
+ * @version (a version number or a date)
+ */
+public class pit 
+{
+    private Rectangle fondo;
+    private Rectangle marco;
+    private int seeds;
+    private boolean big;
+
+    /**
+     * Constructor for objects of class pit
+     */
+    public pit(boolean big)
+    {
+        if (big){
+            marco = new Rectangle();
+            int tamaño = 200;
+            marco.changeSize(tamaño,tamaño);
+            marco.changeColor("black");
+            marco.makeVisible();
+            fondo = new Rectangle();
+            int tamañofondo = 180;
+            fondo.changeSize(tamañofondo,tamañofondo);
+            fondo.changeColor("red");
+            fondo.makeVisible();
+            fondo.moveHorizontal(11);
+            fondo.moveVertical(9);
+        }else{
+            marco = new Rectangle();
+            int tamaño = 140;
+            marco.changeSize(tamaño,tamaño);
+            marco.changeColor("black");
+            marco.makeVisible();
+            fondo = new Rectangle();
+            int tamañofondo = 120;
+            fondo.changeSize(tamañofondo,tamañofondo);
+            fondo.changeColor("red");
+            fondo.makeVisible();
+            fondo.moveHorizontal(11);
+            fondo.moveVertical(9);
+            
+        }
+    }
+    
+    public void putSeeds(int newSeeds){
+        seeds += newSeeds;
+    }
+    
+    public void removeSeeds(int deleteSeeds){
+        seeds -= deleteSeeds;
+    }
+    
+    
+    /**
+     * 
+     * 
+     */
+    public int seeds(){
+       return seeds; 
+    }
+    
+    /**
+     * agregar seeds despues de crear los circulos
+     * 
+     */public void changeColor (String newfondo,String seeds){
+        fondo.changeColor(newfondo);
+    }
+    
+    public void moveTo(int x,int y){
+        marco.moveHorizontal(x);
+        marco.moveVertical(y);
+        fondo.moveHorizontal(x);
+        fondo.moveVertical(y);
+    }
+    
+    public void makeVisible(){
+        marco.makeVisible();
+        fondo.makeVisible();
+    }
+    public void makeInvisible(){
+        marco.makeInvisible();
+        fondo.makeInvisible();
+        
+    }
+    
+}
+
+
+
