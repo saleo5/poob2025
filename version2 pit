@@ -38,15 +38,39 @@ public class Pit {
     }
 
     public void putSeeds(int newSeeds) {
-        for (int i = 0; i < newSeeds; i++) {
-            Circle seed = new Circle();
-            seed.changeColor("blue");
-            seed.makeVisible();
-            seed.moveHorizontal(15 + (i % 5) * 20);
-            seed.moveVertical(15 + (i / 5) * 20);
-            seeds.add(seed);
+        if (big) {
+            if (newSeeds > 25) {
+                System.out.println("Error: No se pueden agregar más de 25 semillas.");
+                return;
+            }
+            else{
+                for (int i = 0; i < newSeeds; i++) {
+                Circle seed = new Circle();
+                seed.changeColor("blue");
+                seed.makeVisible();
+                seed.moveHorizontal(80 + (i % 5) * 30);
+                seed.moveVertical(15 + (i / 5) * 30);
+                seeds.add(seed);
+            }
+            }
+        } else {
+            if (newSeeds > 9) {
+                System.out.println("Error: No se pueden agregar más de 10 semillas.");
+                return;
+            }
+            else {
+                for (int i = 0; i < newSeeds; i++) {
+                Circle seed = new Circle();
+                seed.changeColor("blue");
+                seed.makeVisible();
+                seed.moveHorizontal(80 + (i % 3) * 30);
+                seed.moveVertical(15 + (i / 3) * 30);
+                seeds.add(seed);
+            }
+            }
         }
     }
+
 
     public void removeSeeds(int deleteSeeds) {
         for (int i = 0; i < deleteSeeds && !seeds.isEmpty(); i++) {
