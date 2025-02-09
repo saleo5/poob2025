@@ -1,0 +1,92 @@
+import java.util.ArrayList;
+
+public class Pit {
+    private Rectangle fondo;
+    private Rectangle marco;
+    private ArrayList<Circle> seeds;
+    private boolean big;
+
+    public Pit(boolean big) {
+        this.big = big;
+        seeds = new ArrayList<>();
+
+        if (big) {
+            marco = new Rectangle();
+            marco.changeSize(200, 200);
+            marco.changeColor("black");
+            marco.makeVisible();
+
+            fondo = new Rectangle();
+            fondo.changeSize(180, 180);
+            fondo.changeColor("red");
+            fondo.makeVisible();
+            fondo.moveHorizontal(11);
+            fondo.moveVertical(9);
+        } else {
+            marco = new Rectangle();
+            marco.changeSize(140, 140);
+            marco.changeColor("black");
+            marco.makeVisible();
+
+            fondo = new Rectangle();
+            fondo.changeSize(120, 120);
+            fondo.changeColor("red");
+            fondo.makeVisible();
+            fondo.moveHorizontal(11);
+            fondo.moveVertical(9);
+        }
+    }
+
+    public void putSeeds(int newSeeds) {
+        for (int i = 0; i < newSeeds; i++) {
+            Circle seed = new Circle();
+            seed.changeColor("blue");
+            seed.makeVisible();
+            seed.moveHorizontal(15 + (i % 5) * 20);
+            seed.moveVertical(15 + (i / 5) * 20);
+            seeds.add(seed);
+        }
+    }
+
+    public void removeSeeds(int deleteSeeds) {
+        for (int i = 0; i < deleteSeeds && !seeds.isEmpty(); i++) {
+            Circle seed = seeds.remove(seeds.size() - 1);
+            seed.makeInvisible();
+        }
+    }
+
+    public int seeds() {
+        return seeds.size();
+    }
+
+    public void changeColor(String newFondo) {
+        fondo.changeColor(newFondo);
+    }
+
+    public void moveTo(int x, int y) {
+        marco.moveHorizontal(x);
+        marco.moveVertical(y);
+        fondo.moveHorizontal(x);
+        fondo.moveVertical(y);
+        for (Circle seed : seeds) {
+            seed.moveHorizontal(x);
+            seed.moveVertical(y);
+        }
+    }
+
+    public void makeVisible() {
+        marco.makeVisible();
+        fondo.makeVisible();
+        for (Circle seed : seeds) {
+            seed.makeVisible();
+        }
+    }
+
+    public void makeInvisible() {
+        marco.makeInvisible();
+        fondo.makeInvisible();
+        for (Circle seed : seeds) {
+            seed.makeInvisible();
+        }
+    }
+}
