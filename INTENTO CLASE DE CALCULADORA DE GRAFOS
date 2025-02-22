@@ -1,0 +1,109 @@
+import java.util.TreeMap;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
+
+public class GraphCalculator {
+    private TreeMap<String, Graph> variables;
+    private boolean lastOperationSuccess;
+
+    public GraphCalculator() {
+        this.variables = new TreeMap<>();
+        this.lastOperationSuccess = true;
+    }
+
+    public void create(String nombre) {
+        variables.put(nombre, new Graph(new String[]{}, new String[][]{}));
+        lastOperationSuccess = true;
+    }
+
+    public void assign(String graph, String[] vertices, String[][] edges) {
+        variables.put(graph, new Graph(vertices, edges));
+        lastOperationSuccess = true;
+    }
+
+    public void assignUnary(String a, String b, char op, String[] vertices) {
+        if (!variables.containsKey(b)) {
+            lastOperationSuccess = false;
+            return;
+        }
+    
+        Graph g = variables.get(b);
+        String[] existingVertices = g.getVertices().toArray(new String[0]);
+        String[][] existingEdges = g.getEdges().stream()
+                .map(e -> e.replace("(", "").replace(")", "").split(", "))
+                .toArray(String[][]::new);
+    
+        switch (op) {
+            case '+': // Agregar arista entre los vértices dados
+                String[][] newEdges = Arrays.copyOf(existingEdges, existingEdges.length + 1);
+                newEdges[existingEdges.length] = new String[]{vertices[0], vertices[1]};
+                variables.put(a, new Graph(existingVertices, newEdges));
+                break;
+            case '-': // Eliminar arista
+                List<String[]> filteredEdges = new ArrayList<>();
+                for (String[] edge : existingEdges) {
+                    if (!(edge[0].equals(vertices[0]) && edge[1].equals(vertices[1])) &&
+                        !(edge[1].equals(vertices[0]) && edge[0].equals(vertices[1]))) {
+                        filteredEdges.add(edge);
+                    }
+                }
+                variables.put(a, new Graph(existingVertices, filteredEdges.toArray(new String[0][])));
+                break;
+            case '?': // Verificar si los vértices existen
+                lastOperationSuccess = Arrays.stream(vertices).allMatch(g::contains);
+                return;
+            default:
+                lastOperationSuccess = false;
+                return;
+        }
+        lastOperationSuccess = true;
+    }
+
+
+    public void assignBinary(String a, String b, char op, String c) {
+        if (!variables.containsKey(b) || !variables.containsKey(c)) {
+            lastOperationSuccess = false;
+            return;
+        }
+
+        Graph g1 = variables.get(b);
+        Graph g2 = variables.get(c);
+        HashSet<String> resultVertices = new HashSet<>(g1.getVertices());
+        HashSet<String> resultEdges = new HashSet<>(g1.getEdges());
+
+        switch (op) {
+            case 'u': // Union
+                resultVertices.addAll(g2.getVertices());
+                resultEdges.addAll(g2.getEdges());
+                break;
+            case 'i': // Intersección
+                resultVertices.retainAll(g2.getVertices());
+                resultEdges.retainAll(g2.getEdges());
+                break;
+            case 'd': // Diferencia
+                resultVertices.removeAll(g2.getVertices());
+                resultEdges.removeAll(g2.getEdges());
+                break;
+            case 'j': // Join (unión con aristas combinadas)
+                resultVertices.addAll(g2.getVertices());
+                resultEdges.addAll(g2.getEdges());
+                break;
+            default:
+                lastOperationSuccess = false;
+                return;
+        }
+        variables.put(a, new Graph(resultVertices.toArray(new String[0]), 
+                resultEdges.stream().map(e -> e.replace("(", "").replace(")", "").split(", ")).toArray(String[][]::new)));
+        lastOperationSuccess = true;
+    }
+
+    public String toString(String graph) {
+        return variables.containsKey(graph) ? variables.get(graph).toString() : null;
+    }
+
+    public boolean ok() {
+        return lastOperationSuccess;
+    }
+}
