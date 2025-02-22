@@ -1,0 +1,63 @@
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Objects;
+
+public class Graph {
+    private Set<String> vertices;
+    private Set<List<String>> edges;
+
+    public Graph(String[] vertices, String[][] edges) {
+        this.vertices = Arrays.stream(vertices)
+                .map(String::toUpperCase)
+                .collect(Collectors.toSet());
+        
+        this.edges = new HashSet<>();
+        for (String[] edge : edges) {
+            String v1 = edge[0].toUpperCase();
+            String v2 = edge[1].toUpperCase();
+            
+            if (this.vertices.contains(v1) && this.vertices.contains(v2)) {
+                List<String> orderedEdge = Arrays.asList(v1, v2);
+                orderedEdge.sort(String::compareTo);
+                this.edges.add(orderedEdge);
+            }
+        }
+    }
+
+    public boolean contains(String vertex) {
+        return vertices.contains(vertex.toUpperCase());
+    }
+
+    public int vertices() {
+        return vertices.size();
+    }
+
+    public int edges() {
+        return edges.size();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Graph graph = (Graph) obj;
+        return this.vertices.equals(graph.vertices) && this.edges.equals(graph.edges);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(vertices, edges);
+    }
+
+    @Override
+    public String toString() {
+        return edges.stream()
+                .map(edge -> "(" + edge.get(0) + ", " + edge.get(1) + ")")
+                .sorted()
+                .collect(Collectors.joining(" "));
+    }
+}
+ 
