@@ -1,0 +1,211 @@
+import java.util.TreeMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.Arrays;
+
+public class GraphCalculator {
+    
+    private TreeMap<String, Graph> variables;
+    private boolean lastOperationSuccess;
+
+    public GraphCalculator() {
+        variables = new TreeMap<>();
+        lastOperationSuccess = false;
+    }
+    
+    // Create a new variable
+    public void create(String nombre) {
+        if (!variables.containsKey(nombre)) {
+            variables.put(nombre, new Graph(new String[]{}, new String[][]{}));
+            lastOperationSuccess = true;
+        } else {
+            lastOperationSuccess = false;
+        }
+    }
+     
+    // Assign a graph to an existing variable
+    public void assign(String graph, String[] vertices, String[][] edges) {
+        if (variables.containsKey(graph)) {
+            variables.put(graph, new Graph(vertices, edges));
+            lastOperationSuccess = true;
+        } else {
+            lastOperationSuccess = false;
+        }
+    }    
+    
+    // Assigns the value of a unary operation to a variable
+    public void assignUnary(String a, String b, char op, String[] vertices) {
+        if (!variables.containsKey(b)) {
+            lastOperationSuccess = false;
+            return;
+        }
+
+        Graph graphB = variables.get(b);
+        Graph result = null;
+
+        switch (op) {
+            case '+':
+                // Add edges between vertices
+                Set<String> newVertices = new HashSet<>(Arrays.asList(vertices)); // Nuevos vértices
+                newVertices.addAll(graphB.vertices); // Agregar vértices existentes de graphB
+            
+                // Convertir las aristas existentes de graphB a un formato de matriz
+                Set<String[]> existingEdges = new HashSet<>();
+                for (String edge : graphB.edges) {
+                    String[] verticesEdge = edge.substring(1, edge.length() - 1).split(", ");
+                    existingEdges.add(verticesEdge);
+                }
+            
+                // Agregar las nuevas aristas entre los vértices proporcionados
+                for (int i = 0; i < vertices.length - 1; i++) {
+                    String[] newEdge = {vertices[i], vertices[i + 1]};
+                    existingEdges.add(newEdge);
+                }
+            
+                // Convertir el conjunto de aristas a una matriz
+                String[][] newEdges = existingEdges.toArray(new String[0][2]);
+            
+                // Crear el nuevo grafo con los vértices y aristas actualizados
+                result = new Graph(newVertices.toArray(new String[0]), newEdges);
+                break;
+
+            case '-':
+                // Remove edges between vertices
+                Set<String> remainingVertices = new HashSet<>(graphB.vertices);
+                Set<String> remainingEdges = new HashSet<>(graphB.edges);
+                for (int i = 0; i < vertices.length - 1; i++) {
+                    String edge = "(" + vertices[i].toUpperCase() + ", " + vertices[i + 1].toUpperCase() + ")";
+                    remainingEdges.remove(edge);
+                }
+                result = new Graph(remainingVertices.toArray(new String[0]), 
+                                  remainingEdges.stream().map(e -> e.substring(1, e.length() - 1).split(", ")).toArray(String[][]::new));
+                break;
+
+            case '?':
+                // Check if the graph contains the given vertices
+                boolean containsAll = true;
+                for (String vertex : vertices) {
+                    if (!graphB.contains(vertex)) {
+                        containsAll = false;
+                        break;
+                    }
+                }
+                lastOperationSuccess = containsAll;
+                return;
+
+            case 'p':
+                // Return the graph with a path that passes through all the vertices in the indicated order
+                Set<String> pathVertices = new HashSet<>(Arrays.asList(vertices));
+                String[][] pathEdges = new String[vertices.length - 1][2];
+                for (int i = 0; i < vertices.length - 1; i++) {
+                    pathEdges[i][0] = vertices[i];
+                    pathEdges[i][1] = vertices[i + 1];
+                }
+                result = new Graph(pathVertices.toArray(new String[0]), pathEdges);
+                break;
+
+            default:
+                lastOperationSuccess = false;
+                return;
+        }
+
+        variables.put(a, result);
+        lastOperationSuccess = true;
+    }
+    
+    // Assigns the value of a binary operation to a variable
+    public void assignBinary(String a, String b, char op, String c) {
+        if (!variables.containsKey(b) || !variables.containsKey(c)) {
+            lastOperationSuccess = false;
+            return;
+        }
+
+        Graph graphB = variables.get(b);
+        Graph graphC = variables.get(c);
+        Graph result = null;
+
+        switch (op) {
+            case 'u':
+                // Union of graphs
+                Set<String> unionVertices = new HashSet<>(graphB.vertices);
+                unionVertices.addAll(graphC.vertices);
+                Set<String> unionEdges = new HashSet<>(graphB.edges);
+                unionEdges.addAll(graphC.edges);
+                result = new Graph(unionVertices.toArray(new String[0]), 
+                                 unionEdges.stream().map(e -> e.substring(1, e.length() - 1).split(", ")).toArray(String[][]::new));
+                break;
+
+            case 'i':
+                // Intersection of graphs
+                Set<String> intersectionVertices = new HashSet<>(graphB.vertices);
+                intersectionVertices.retainAll(graphC.vertices);
+                Set<String> intersectionEdges = new HashSet<>(graphB.edges);
+                intersectionEdges.retainAll(graphC.edges);
+                result = new Graph(intersectionVertices.toArray(new String[0]), 
+                                 intersectionEdges.stream().map(e -> e.substring(1, e.length() - 1).split(", ")).toArray(String[][]::new));
+                break;
+
+            case 'd':
+                // Difference of graphs
+                Set<String> differenceVertices = new HashSet<>(graphB.vertices);
+                differenceVertices.removeAll(graphC.vertices); // Eliminar vértices de graphC
+            
+                // Filtrar aristas de graphB que no estén en graphC y cuyos vértices estén en differenceVertices
+                Set<String> differenceEdges = new HashSet<>();
+                for (String edge : graphB.edges) {
+                    String[] verticesEdge = edge.substring(1, edge.length() - 1).split(", ");
+                    String v1 = verticesEdge[0];
+                    String v2 = verticesEdge[1];
+            
+                    // Verificar si ambos vértices de la arista están en differenceVertices
+                    if (differenceVertices.contains(v1) && differenceVertices.contains(v2)) {
+                        differenceEdges.add(edge);
+                    }
+                }
+            
+                // Crear el nuevo grafo con los vértices y aristas filtrados
+                result = new Graph(differenceVertices.toArray(new String[0]), 
+                                  differenceEdges.stream().map(e -> e.substring(1, e.length() - 1).split(", ")).toArray(String[][]::new));
+                break;
+
+            case 'j':
+                // Join of graphs
+                Set<String> joinVertices = new HashSet<>(graphB.vertices);
+                joinVertices.addAll(graphC.vertices);
+                Set<String> joinEdges = new HashSet<>(graphB.edges);
+                joinEdges.addAll(graphC.edges);
+                // Add edges between all vertices of B and C
+                for (String vertexB : graphB.vertices) {
+                    for (String vertexC : graphC.vertices) {
+                        String edge = "(" + vertexB.toUpperCase() + ", " + vertexC.toUpperCase() + ")";
+                        joinEdges.add(edge);
+                    }
+                }
+                result = new Graph(joinVertices.toArray(new String[0]), 
+                                 joinEdges.stream().map(e -> e.substring(1, e.length() - 1).split(", ")).toArray(String[][]::new));
+                break;
+
+            default:
+                lastOperationSuccess = false;
+                return;
+        }
+
+        variables.put(a, result);
+        lastOperationSuccess = true;
+    }
+  
+    // Returns the graph with the edges in uppercase in alphabetical order.
+    public String toString(String graph) {
+        if (variables.containsKey(graph)) {
+            return variables.get(graph).toString();
+        } else {
+            lastOperationSuccess = false;
+            return null;
+        }
+    }
+    
+    // If the last operation was successfully completed
+    public boolean ok() {
+        return lastOperationSuccess;
+    }
+}
